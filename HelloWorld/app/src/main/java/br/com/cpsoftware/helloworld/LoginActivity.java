@@ -1,6 +1,7 @@
 package br.com.cpsoftware.helloworld;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -13,16 +14,29 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
 
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        FirebaseApp.initializeApp(this);
+        mAuth = FirebaseAuth.getInstance();
 
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
@@ -39,12 +53,21 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void login(){
-        Log.d("LoginActivity", "Email: " + this.mEmailView.getText() +
-                " e Senha: " + this.mPasswordView.getText());
-
-        finish();
-        Intent homepage = new Intent(this, HomeActivity.class);
-        startActivity(homepage);
+        this.mAuth.signInWithEmailAndPassword(
+            this.mEmailView.getText().toString(),
+            this.mPasswordView.getText().toString()
+        ).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    finish();
+                    Intent homepage = new Intent(LoginActivity.this, HomeActivity.class);
+                    startActivity(homepage);
+                } else {
+                    Log.d("LoginActivity", "Erro no login!");
+                }
+            }
+        });
     }
 
 }
